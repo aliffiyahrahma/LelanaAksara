@@ -4,12 +4,20 @@ function detectRole(speaker = '', character = '') {
   const s = speaker.toLowerCase();
   const c = String(character || '');
 
+  // Cek berdasarkan nama pembicara terlebih dahulu
   if (s.includes('narasi') || s.includes('narrator') || (!c && !s)) return 'narasi';
-  if (s.includes('rara') || s.includes('kembang') || s.includes('putri') || s.includes('dewi') || c.includes('👸') || c.includes('👩')) return 'putri';
-  if (s.includes('adipati') || s.includes('raja') || s.includes('prabu') || s.includes('sultan') || s.includes('betak') || c.includes('👑') || c.includes('🤴')) return 'raja';
-  if (s.includes('pangeran') || s.includes('kalang') || s.includes('joko') || s.includes('raden') || s.includes('patih') || c.includes('🧑') || c.includes('⚔️') || c.includes('🛡️')) return 'pangeran';
-  if (s.includes('ibu') || s.includes('mbok') || s.includes('nyai') || s.includes('dayang') || c.includes('👵')) return 'ibu';
-  if (s.includes('pertapa') || s.includes('resi') || s.includes('kyai') || s.includes('begawan') || c.includes('🧙') || c.includes('👴')) return 'pertapa';
+  if (s.includes('rara') || s.includes('kembang') || s.includes('putri') || s.includes('dewi')) return 'putri';
+  if (s.includes('pangeran') || s.includes('kalang') || s.includes('joko') || s.includes('raden') || s.includes('patih') || s.includes('lembu')) return 'pangeran';
+  if (s.includes('adipati') || s.includes('raja') || s.includes('prabu') || s.includes('sultan') || s.includes('betak')) return 'raja';
+  if (s.includes('ibu') || s.includes('mbok') || s.includes('nyai') || s.includes('dayang')) return 'ibu';
+  if (s.includes('pertapa') || s.includes('resi') || s.includes('kyai') || s.includes('begawan')) return 'pertapa';
+
+  // Cadangan berdasarkan emoji
+  if (c.includes('👸') || c.includes('👩')) return 'putri';
+  if (c.includes('👑')) return 'raja';
+  if (c.includes('🤴') || c.includes('🧑') || c.includes('⚔️') || c.includes('🛡️')) return 'pangeran';
+  if (c.includes('👵')) return 'ibu';
+  if (c.includes('🧙') || c.includes('👴')) return 'pertapa';
 
   return c ? 'pangeran' : 'narasi';
 }
@@ -24,11 +32,11 @@ export default function CharacterAvatar({ speaker, character }) {
   return (
     <div className="relative flex flex-col items-center select-none animate-scene">
       {/* Cahaya lembut di belakang karakter */}
-      <div className="pointer-events-none absolute bottom-2 h-40 w-40 sm:h-48 sm:w-48 rounded-full bg-amber-300/25 blur-2xl" />
+      <div className="pointer-events-none absolute bottom-2 h-36 w-36 sm:h-44 sm:w-44 rounded-full bg-amber-300/25 blur-2xl" />
 
       <svg
         viewBox="0 0 220 220"
-        className="relative z-10 w-44 h-44 sm:w-56 sm:h-56 drop-shadow-[0_14px_24px_rgba(15,23,42,0.35)]"
+        className="relative z-10 w-36 h-36 sm:w-44 sm:h-44 drop-shadow-[0_14px_24px_rgba(15,23,42,0.35)]"
       >
         <defs>
           <linearGradient id="skinTone" x1="0" y1="0" x2="0" y2="1">
