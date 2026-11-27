@@ -23,11 +23,28 @@ export default function ResultScene({ playerName, result, onPlayAgain, onBackToM
   };
 
   const info = recommendations[result.skillLevel] || recommendations.Beginner;
+  const clampedAccuracy = Math.max(
+    0,
+    Math.min(100, Number(result.accuracyPercentage) || 0)
+  );
+
+  const safeAreaStyle = {
+    paddingTop: 'max(1rem, env(safe-area-inset-top))',
+    paddingRight: 'max(1rem, env(safe-area-inset-right))',
+    paddingBottom: 'max(1rem, env(safe-area-inset-bottom))',
+    paddingLeft: 'max(1rem, env(safe-area-inset-left))',
+  };
 
   return (
-    <div className="min-h-svh bg-canvas-dots flex items-center justify-center p-4 sm:p-6">
+    <div
+      style={safeAreaStyle}
+      className="min-h-svh bg-canvas-dots flex items-center justify-center"
+    >
       <div className="max-w-xl w-full bg-white border-2 border-slate-200/80 rounded-[2rem] p-6 sm:p-8 shadow-[0_24px_60px_-15px_rgba(15,118,110,0.14)] text-center">
-        <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl bg-orange-50 border border-orange-200 text-3xl shadow-xs">
+        <div
+          aria-hidden="true"
+          className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl bg-orange-50 border border-orange-200 text-3xl shadow-xs"
+        >
           🏆
         </div>
 
@@ -57,12 +74,18 @@ export default function ResultScene({ playerName, result, onPlayAgain, onBackToM
           <div className="bg-slate-50 border border-slate-200/80 p-4 rounded-2xl">
             <p className="text-xs font-medium text-slate-500">Persentase Benar</p>
             <p className="font-display text-xl font-extrabold text-teal-600 mt-0.5">
-              {result.accuracyPercentage}%
+              {clampedAccuracy}%
             </p>
-            <div className="mt-2 h-1.5 w-full rounded-full bg-slate-200 overflow-hidden">
+            <div
+              role="progressbar"
+              aria-valuenow={clampedAccuracy}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              className="mt-2 h-1.5 w-full rounded-full bg-slate-200 overflow-hidden"
+            >
               <div
-                className={`h-full rounded-full ${info.barColor}`}
-                style={{ width: `${Math.min(100, result.accuracyPercentage)}%` }}
+                className={`h-full rounded-full transition-all ${info.barColor}`}
+                style={{ width: `${clampedAccuracy}%` }}
               />
             </div>
           </div>
@@ -83,23 +106,25 @@ export default function ResultScene({ playerName, result, onPlayAgain, onBackToM
         {/* Rekomendasi Materi */}
         <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl text-left mb-6">
           <p className="text-xs font-extrabold text-teal-700 uppercase tracking-wider mb-1">
-            💡 Rekomendasi Belajar
+            <span aria-hidden="true">💡</span> Rekomendasi Belajar
           </p>
           <p className="text-sm text-slate-600 leading-relaxed">{info.text}</p>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3">
           <button
+            type="button"
             onClick={onPlayAgain}
-            className="flex-1 py-3.5 bg-teal-600 hover:bg-teal-500 border-b-4 border-teal-800 active:border-b-0 active:translate-y-0.5 text-white font-display font-bold rounded-xl transition-all cursor-pointer"
+            className="flex-1 py-3.5 bg-teal-600 hover:bg-teal-500 border-b-4 border-teal-800 active:border-b-0 active:translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-300 text-white font-display font-bold rounded-xl transition-all cursor-pointer"
           >
-            🔄 Main Lagi
+            <span aria-hidden="true">🔄</span> Main Lagi
           </button>
           <button
+            type="button"
             onClick={onBackToMenu}
-            className="flex-1 py-3.5 bg-slate-100 hover:bg-slate-200 border-b-4 border-slate-300 active:border-b-0 active:translate-y-0.5 text-slate-700 font-display font-bold rounded-xl transition-all cursor-pointer"
+            className="flex-1 py-3.5 bg-slate-100 hover:bg-slate-200 border-b-4 border-slate-300 active:border-b-0 active:translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 text-slate-700 font-display font-bold rounded-xl transition-all cursor-pointer"
           >
-            🏠 Kembali ke Menu
+            <span aria-hidden="true">🏠</span> Kembali ke Menu
           </button>
         </div>
       </div>

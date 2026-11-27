@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ConfirmExitModal from './ConfirmExitModal';
 
 export default function QuestionScene({ question, skillBadge, onAnswerSuccess, onBackToMenu }) {
@@ -7,8 +7,8 @@ export default function QuestionScene({ question, skillBadge, onAnswerSuccess, o
   const [feedback, setFeedback] = useState(null);
   const [attempts, setAttempts] = useState(0);
   const [wrongCount, setWrongCount] = useState(0);
-  const [startTime, setStartTime] = useState(Date.now());
   const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const startTimeRef = useRef(Date.now());
 
   useEffect(() => {
     setSelectedOption(null);
@@ -16,17 +16,20 @@ export default function QuestionScene({ question, skillBadge, onAnswerSuccess, o
     setFeedback(null);
     setAttempts(0);
     setWrongCount(0);
-    setStartTime(Date.now());
+    startTimeRef.current = Date.now();
   }, [question]);
 
   const handleConfirm = () => {
-    if (!selectedOption) return;
+    if (!selectedOption || feedback?.isCorrect) return;
 
     const currentAttempt = attempts + 1;
     setAttempts(currentAttempt);
 
     if (selectedOption === question.correct_option) {
-      const timeTakenSeconds = Math.max(1, Math.round((Date.now() - startTime) / 1000));
+      const timeTakenSeconds = Math.max(
+        1,
+        Math.round((Date.now() - startTimeRef.current) / 1000)
+      );
       setFeedback({
         isCorrect: true,
         message: 'Hebat! Jawabanmu benar. Cerita dapat dilanjutkan!'
@@ -39,7 +42,8 @@ export default function QuestionScene({ question, skillBadge, onAnswerSuccess, o
         });
       }, 1200);
     } else {
-      setWrongCount(wrongCount + 1);
+      const nextWrongCount = wrongCount + 1;
+      setWrongCount(nextWrongCount);
       setShowHint(true);
       setFeedback({
         isCorrect: false,
@@ -55,10 +59,20 @@ export default function QuestionScene({ question, skillBadge, onAnswerSuccess, o
     { key: 'D', label: question.option_d }
   ];
 
+  const safeAreaStyle = {
+    paddingTop: 'max(1rem, env(safe-area-inset-top))',
+    paddingRight: 'max(1rem, env(safe-area-inset-right))',
+    paddingBottom: 'max(1rem, env(safe-area-inset-bottom))',
+    paddingLeft: 'max(1rem, env(safe-area-inset-left))',
+  };
+
   return (
-    <div className="min-h-svh bg-canvas-dots flex items-center justify-center p-4 sm:p-6">
+    <div
+      style={safeAreaStyle}
+      className="min-h-svh bg-canvas-dots flex items-center justify-center"
+    >
       <div className="max-w-2xl w-full bg-white border-2 border-slate-200/80 rounded-[2rem] p-5 sm:p-8 shadow-[0_24px_60px_-15px_rgba(15,23,42,0.1)]">
-        {/* Header Bar */}
+        {/* Header Bar / HUD Status */}
         <div className="flex flex-wrap justify-between items-center gap-2 mb-5 pb-4 border-b border-slate-100">
           <div className="flex flex-wrap items-center gap-2">
             <span className="px-3.5 py-1 bg-teal-50 border border-teal-200 text-teal-700 rounded-full text-xs font-extrabold">
@@ -72,8 +86,9 @@ export default function QuestionScene({ question, skillBadge, onAnswerSuccess, o
           </div>
 
           <button
+            type="button"
             onClick={() => setShowExitConfirm(true)}
-            className="px-3.5 py-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 rounded-xl text-xs font-bold transition cursor-pointer"
+            className="px-3.5 py-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 rounded-xl text-xs font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 transition cursor-pointer"
           >
             Menu Utama
           </button>
@@ -98,9 +113,11 @@ export default function QuestionScene({ question, skillBadge, onAnswerSuccess, o
             return (
               <button
                 key={opt.key}
+                type="button"
+                aria-pressed={isSelected}
                 onClick={() => setSelectedOption(opt.key)}
-                disabled={feedback?.isCorrect}
-                className={`p-3.5 rounded-2xl border-2 text-left font-semibold transition-all flex items-center gap-3 cursor-pointer ${
+                disabled={Boolean(feedback?.isCorrect)}
+                className={`p-3.5 rounded-2xl border-2 text-left font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 disabled:cursor-not-allowed transition-all flex items-center gap-3 cursor-pointer ${
                   isSelected
                     ? 'bg-teal-50 border-teal-500 border-b-4 text-teal-950 shadow-sm'
                     : 'bg-white hover:bg-slate-50 border-slate-200 border-b-4 text-slate-700'
@@ -124,7 +141,7 @@ export default function QuestionScene({ question, skillBadge, onAnswerSuccess, o
         {/* Box Petunjuk (Hint) */}
         {showHint && (
           <div className="animate-scene mb-4 p-4 bg-sky-50 border border-sky-200 rounded-2xl text-sm text-sky-900 text-left flex items-start gap-2.5">
-            <span>💡</span>
+            <span aria-hidden="true">💡</span>
             <div>
               <span className="font-bold">Petunjuk: </span>
               {question.hint}
@@ -135,13 +152,15 @@ export default function QuestionScene({ question, skillBadge, onAnswerSuccess, o
         {/* Feedback */}
         {feedback && (
           <div
+            role="status"
+            aria-live="polite"
             className={`mb-4 p-4 rounded-2xl text-sm font-bold text-left flex items-center gap-2.5 ${
               feedback.isCorrect
                 ? 'animate-scene bg-emerald-50 border border-emerald-300 text-emerald-800'
                 : 'animate-shake bg-rose-50 border border-rose-300 text-rose-800'
             }`}
           >
-            <span>{feedback.isCorrect ? '✅' : '⚠️'}</span>
+            <span aria-hidden="true">{feedback.isCorrect ? '✅' : '⚠️'}</span>
             <span>{feedback.message}</span>
           </div>
         )}
@@ -149,16 +168,18 @@ export default function QuestionScene({ question, skillBadge, onAnswerSuccess, o
         {/* Tombol Aksi */}
         <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 pt-1">
           <button
-            onClick={() => setShowHint(!showHint)}
-            className="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-bold transition cursor-pointer"
+            type="button"
+            onClick={() => setShowHint((prev) => !prev)}
+            className="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 transition cursor-pointer"
           >
-            💡 {showHint ? 'Sembunyikan Hint' : 'Lihat Hint'}
+            <span aria-hidden="true">💡</span> {showHint ? 'Sembunyikan Hint' : 'Lihat Hint'}
           </button>
 
           <button
+            type="button"
             onClick={handleConfirm}
-            disabled={!selectedOption || feedback?.isCorrect}
-            className="flex-1 py-3.5 px-6 bg-teal-600 hover:bg-teal-500 border-b-4 border-teal-800 active:border-b-0 active:translate-y-0.5 disabled:bg-slate-200 disabled:border-slate-300 disabled:text-slate-400 text-white font-display font-bold rounded-xl transition-all cursor-pointer"
+            disabled={!selectedOption || Boolean(feedback?.isCorrect)}
+            className="flex-1 py-3.5 px-6 bg-teal-600 hover:bg-teal-500 border-b-4 border-teal-800 active:border-b-0 active:translate-y-0.5 disabled:bg-slate-200 disabled:border-slate-300 disabled:text-slate-400 disabled:cursor-not-allowed text-white font-display font-bold rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-300 transition-all cursor-pointer"
           >
             Konfirmasi Jawaban ✔
           </button>

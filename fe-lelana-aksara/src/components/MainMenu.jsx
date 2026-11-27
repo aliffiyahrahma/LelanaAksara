@@ -1,9 +1,25 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 export default function MainMenu({ onStartGame }) {
   const [modal, setModal] = useState(null); // 'petunjuk' | 'tentang' | null
   const [playerName, setPlayerName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const closeModalBtnRef = useRef(null);
+
+  useEffect(() => {
+    if (!modal) return;
+
+    closeModalBtnRef.current?.focus();
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setModal(null);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [modal]);
 
   const handlePlay = async (e) => {
     e.preventDefault();
@@ -16,8 +32,18 @@ export default function MainMenu({ onStartGame }) {
     }
   };
 
+  const safeAreaStyle = {
+    paddingTop: 'max(1.25rem, env(safe-area-inset-top))',
+    paddingRight: 'max(1.25rem, env(safe-area-inset-right))',
+    paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))',
+    paddingLeft: 'max(1.25rem, env(safe-area-inset-left))',
+  };
+
   return (
-    <div className="relative min-h-svh w-full overflow-hidden bg-canvas-dots flex flex-col items-center justify-center p-5 sm:p-6">
+    <div
+      style={safeAreaStyle}
+      className="relative min-h-svh w-full overflow-hidden bg-canvas-dots flex flex-col items-center justify-center"
+    >
       {/* Cahaya pastel latar */}
       <div className="pointer-events-none absolute -top-24 -left-24 h-96 w-96 rounded-full bg-teal-200/45 blur-3xl" />
       <div className="pointer-events-none absolute top-1/3 -right-24 h-80 w-80 rounded-full bg-orange-200/45 blur-3xl" />
@@ -67,19 +93,20 @@ export default function MainMenu({ onStartGame }) {
           <div className="relative">
             <input
               type="text"
+              aria-label="Nama pemain"
               placeholder="Ketik namamu di sini (opsional)..."
               value={playerName}
               onChange={(e) => setPlayerName(e.target.value)}
-              className="w-full px-5 py-3.5 rounded-2xl bg-slate-50 border-2 border-slate-200 text-center font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-teal-500 transition"
+              className="w-full px-5 py-3.5 rounded-2xl bg-slate-50 border-2 border-slate-200 text-center font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-teal-500 focus-visible:ring-2 focus-visible:ring-teal-300 transition"
             />
           </div>
 
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-4 px-6 bg-teal-600 hover:bg-teal-500 active:translate-y-0.5 border-b-4 border-teal-800 active:border-b-0 disabled:opacity-60 text-white font-display font-bold text-lg rounded-2xl shadow-lg shadow-teal-600/25 transition-all flex items-center justify-center gap-2.5 cursor-pointer"
+            className="w-full py-4 px-6 bg-teal-600 hover:bg-teal-500 active:translate-y-0.5 border-b-4 border-teal-800 active:border-b-0 disabled:opacity-60 text-white font-display font-bold text-lg rounded-2xl shadow-lg shadow-teal-600/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-300 transition-all flex items-center justify-center gap-2.5 cursor-pointer"
           >
-            <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
               <path d="M8 5v14l11-7z" />
             </svg>
             <span>{isSubmitting ? 'Menyiapkan Cerita...' : 'Mulai Bermain'}</span>
@@ -90,27 +117,27 @@ export default function MainMenu({ onStartGame }) {
           <button
             type="button"
             onClick={() => setModal('petunjuk')}
-            className="py-2.5 px-3 bg-slate-50 hover:bg-teal-50 border border-slate-200 hover:border-teal-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 hover:text-teal-700 transition flex items-center justify-center gap-1.5 cursor-pointer"
+            className="py-2.5 px-3 bg-slate-50 hover:bg-teal-50 border border-slate-200 hover:border-teal-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 hover:text-teal-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 transition flex items-center justify-center gap-1.5 cursor-pointer"
           >
-            <span>📖</span>
+            <span aria-hidden="true">📖</span>
             <span>Petunjuk</span>
           </button>
 
           <button
             type="button"
             onClick={() => setModal('tentang')}
-            className="py-2.5 px-3 bg-slate-50 hover:bg-orange-50 border border-slate-200 hover:border-orange-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 hover:text-orange-700 transition flex items-center justify-center gap-1.5 cursor-pointer"
+            className="py-2.5 px-3 bg-slate-50 hover:bg-orange-50 border border-slate-200 hover:border-orange-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 hover:text-orange-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 transition flex items-center justify-center gap-1.5 cursor-pointer"
           >
-            <span>✨</span>
+            <span aria-hidden="true">✨</span>
             <span>Tentang</span>
           </button>
 
           <button
             type="button"
             onClick={() => window.close()}
-            className="py-2.5 px-3 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl text-xs sm:text-sm font-semibold text-rose-600 transition flex items-center justify-center gap-1.5 cursor-pointer"
+            className="py-2.5 px-3 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl text-xs sm:text-sm font-semibold text-rose-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 transition flex items-center justify-center gap-1.5 cursor-pointer"
           >
-            <span>🚪</span>
+            <span aria-hidden="true">🚪</span>
             <span>Keluar</span>
           </button>
         </div>
@@ -119,20 +146,34 @@ export default function MainMenu({ onStartGame }) {
       {/* Modal Petunjuk & Tentang */}
       {modal && (
         <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="main-menu-modal-title"
           onClick={() => setModal(null)}
-          className="fixed inset-0 bg-slate-900/45 backdrop-blur-xs flex items-center justify-center p-4 z-50"
+          style={{
+            paddingTop: 'max(1rem, env(safe-area-inset-top))',
+            paddingRight: 'max(1rem, env(safe-area-inset-right))',
+            paddingBottom: 'max(1rem, env(safe-area-inset-bottom))',
+            paddingLeft: 'max(1rem, env(safe-area-inset-left))',
+          }}
+          className="fixed inset-0 bg-slate-900/45 backdrop-blur-xs flex items-center justify-center z-50"
         >
           <div
             onClick={(e) => e.stopPropagation()}
             className="animate-scene bg-white border border-slate-200 rounded-3xl max-w-md w-full p-6 sm:p-7 text-left shadow-2xl"
           >
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-display text-xl font-bold text-slate-900">
+              <h2
+                id="main-menu-modal-title"
+                className="font-display text-xl font-bold text-slate-900"
+              >
                 {modal === 'petunjuk' ? '📖 Petunjuk Bermain' : '✨ Tentang Game'}
               </h2>
               <button
+                type="button"
+                aria-label="Tutup modal"
                 onClick={() => setModal(null)}
-                className="h-8 w-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center cursor-pointer"
+                className="h-8 w-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 flex items-center justify-center cursor-pointer"
               >
                 ✕
               </button>
@@ -164,8 +205,10 @@ export default function MainMenu({ onStartGame }) {
             )}
 
             <button
+              ref={closeModalBtnRef}
+              type="button"
               onClick={() => setModal(null)}
-              className="mt-6 w-full py-3 bg-teal-600 hover:bg-teal-500 border-b-4 border-teal-800 text-white font-bold rounded-xl transition cursor-pointer"
+              className="mt-6 w-full py-3 bg-teal-600 hover:bg-teal-500 border-b-4 border-teal-800 text-white font-bold rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-300 transition cursor-pointer"
             >
               Siap Bermain!
             </button>
